@@ -202,3 +202,48 @@ void dance_0_reset(tap_dance_state_t *state, void *user_data) {
 tap_dance_action_t tap_dance_actions[] = {
         [DANCE_0] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_0, dance_0_finished, dance_0_reset),
 };
+
+////////////////////////////////////////////////////////////
+// Non-ORYX Custom QMK Features
+////////////////////////////////////////////////////////////
+//
+// ------------------------------------------------------------
+// One-Shot Stuff
+// ------------------------------------------------------------
+// This callback determines if the one-shot layer should be cancelled
+// BEFORE the key pressed event is processed.
+//
+// I am using this to cancel the one-shot layer when the OSM key is pressed,
+// so that I can do OSL -> OSM -> <key in original layer>
+bool oneshot_layers_should_cancel(uint16_t keycode, keyrecord_t *record) {
+    // Check if the key pressed is a One Shot Modifier (OSM) key.
+    if (IS_QK_ONE_SHOT_MOD(keycode)) {
+        // If it is an OSM key, return true to cancel the active one-shot layer.
+        return true;
+    }
+    // Otherwise, return false to let the default behavior handle it
+    // (i.e., cancel on normal keys, stay active on other modifiers, etc.).
+    return false;
+}
+
+// --- Optional: Callback for One Shot Modifiers ---
+// If you also wanted OSM keys to be cancelled by other OSM keys (they stack by default),
+// you could implement this:
+// bool oneshot_mods_should_cancel(uint16_t keycode, keyrecord_t *record) {
+//     if (IS_QK_ONE_SHOT_MOD(keycode)) {
+//         return true; // Cancel previous OSM if another OSM is pressed
+//     }
+//     return false;
+// }
+// ------------------------------------------------------------
+// Key Override Stuff
+// ------------------------------------------------------------
+//
+// This causes shift-backspace to send the delete key.
+const key_override_t delete_key_override = 
+    ko_make_basic(MOD_MASK_SHIFT, KC_BSPC, KC_DEL);
+// Pass a null-terminated array of key overrides to be used.
+const key_override_t **key_overrides = (const key_override_t *[]){
+	&delete_key_override,
+	NULL
+};
