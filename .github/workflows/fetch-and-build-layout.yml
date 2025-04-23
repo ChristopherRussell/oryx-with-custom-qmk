@@ -15,15 +15,15 @@ on:
         type: choice
         options:
           - voyager
-          # - moonlander
-          # - ergodox_ez
-          # - ergodox_ez/m32u4/glow
-          # - ergodox_ez/m32u4/shine
-          # - ergodox_ez/stm32
-          # - ergodox_ez/stm32/glow
-          # - ergodox_ez/stm32/shine
-          # - planck_ez
-          # - planck_ez/glow
+          - moonlander
+          - ergodox_ez
+          - ergodox_ez/m32u4/glow
+          - ergodox_ez/m32u4/shine
+          - ergodox_ez/stm32
+          - ergodox_ez/stm32/glow
+          - ergodox_ez/stm32/shine
+          - planck_ez
+          - planck_ez/glow
         default: voyager
 
 permissions:
@@ -32,7 +32,9 @@ permissions:
 jobs:
   fetch-and-build-layout:
     runs-on: ubuntu-latest
-
+    env:
+      LAYOUT_ID: ${{ github.event.inputs.layout_id || 'Dq9r0' }}
+      LAYOUT_GEOMETRY: ${{ github.event.inputs.layout_geometry || 'voyager' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -45,7 +47,7 @@ jobs:
       - name: Download layout source
         id: download-layout-source
         run: |
-          response=$(curl --location 'https://oryx.zsa.io/graphql' --header 'Content-Type: application/json' --data '{"query":"query getLayout($hashId: String!, $revisionId: String!, $geometry: String) {layout(hashId: $hashId, geometry: $geometry, revisionId: $revisionId) {  revision { hashId, qmkVersion, title }}}","variables":{"hashId":"${{ github.event.inputs.layout_id }}","geometry":"${{ github.event.inputs.layout_geometry }}","revisionId":"latest"}}' | jq '.data.layout.revision | [.hashId, .qmkVersion, .title]')
+          response=$(curl --location 'https://oryx.zsa.io/graphql' --header 'Content-Type: application/json' --data '{"query":"query getLayout($hashId: String!, $revisionId: String!, $geometry: String) {layout(hashId: $hashId, geometry: $geometry, revisionId: $revisionId) {  revision { hashId, qmkVersion, title }}}","variables":{"hashId":"'$LAYOUT_ID'","geometry":"'$LAYOUT_GEOMETRY'","revisionId":"latest"}}' | jq '.data.layout.revision | [.hashId, .qmkVersion, .title]')
           hash_id=$(echo "${response}" | jq -r '.[0]')
           firmware_version=$(printf "%.0f" $(echo "${response}" | jq -r '.[1]'))
           change_description=$(echo "${response}" | jq -r '.[2]')
@@ -60,7 +62,7 @@ jobs:
 
       - name: Unzip the source file
         run: |
-          unzip -oj source.zip '*_source/*' -d ${{ github.event.inputs.layout_id }}
+          unzip -oj source.zip '*_source/*' -d $LAYOUT_ID
           rm source.zip
 
       - name: Commit and Push changes
@@ -105,22 +107,22 @@ jobs:
           fi
           
           # Copy layout files to the qmk folder
-          rm -rf ${keyboard_directory}/${{ github.event.inputs.layout_geometry }}/keymaps/${{ github.event.inputs.layout_id }}
-          mkdir -p ${keyboard_directory}/${{ github.event.inputs.layout_geometry }}/keymaps && cp -r ${{ github.event.inputs.layout_id }} "$_"
+          rm -rf ${keyboard_directory}/$LAYOUT_GEOMETRY/keymaps/$LAYOUT_ID
+          mkdir -p ${keyboard_directory}/$LAYOUT_GEOMETRY/keymaps && cp -r $LAYOUT_ID "$_"
           
           # Build the layout
           docker run -v ./qmk_firmware:/root --rm qmk /bin/sh -c "
             qmk setup zsa/qmk_firmware -b firmware${{ steps.download-layout-source.outputs.firmware_version }} -y
-            make ${make_prefix}${{ github.event.inputs.layout_geometry }}:${{ github.event.inputs.layout_id }}
+            make ${make_prefix}$LAYOUT_GEOMETRY:$LAYOUT_ID
           "
           
           # Find and export built layout          
-          normalized_layout_geometry="$(echo "${{ github.event.inputs.layout_geometry }}" | sed 's/\//_/g')"
+          normalized_layout_geometry="$(echo "$LAYOUT_GEOMETRY" | sed 's/\//_/g')"
           echo built_layout_file=$(find ./qmk_firmware -maxdepth 1 -type f -regex ".*${normalized_layout_geometry}.*\.\(bin\|hex\)$") >> "$GITHUB_OUTPUT"
           echo normalized_layout_geometry=${normalized_layout_geometry} >> "$GITHUB_OUTPUT"
 
       - name: Upload layout
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.build-layout.outputs.normalized_layout_geometry }}_${{ github.event.inputs.layout_id }}
+          name: ${{ steps.build-layout.outputs.normalized_layout_geometry }}_${{ env.LAYOUT_ID }}
           path: ${{ steps.build-layout.outputs.built_layout_file }}
