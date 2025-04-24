@@ -210,31 +210,30 @@ tap_dance_action_t tap_dance_actions[] = {
 // ------------------------------------------------------------
 // One-Shot Stuff
 // ------------------------------------------------------------
-// This callback determines if the one-shot layer should be cancelled
-// BEFORE the key pressed event is processed.
+// Callum layout was an initial inspiration. I found this blog post mentioning
+// improvements:
+//
+// https://blog.ffff.lt/posts/callum-layers/
+//
+// It seems that there was a change made to QMK sometime between the blog 
+// post and the current time that changes the default OSM behaviourin a OSL.
+//
+// https://github.com/qmk/qmk_firmware/issues/22566
+//
+// Where KoFish proposes this solution to get the old behaviour.
 //
 // I am using this to cancel the one-shot layer when the OSM key is pressed,
 // so that I can do OSL -> OSM -> <key in original layer>
-bool oneshot_layers_should_cancel(uint16_t keycode, keyrecord_t *record) {
-    // Check if the key pressed is a One Shot Modifier (OSM) key.
-    if (IS_QK_ONE_SHOT_MOD(keycode)) {
-        // If it is an OSM key, return true to cancel the active one-shot layer.
-        return true;
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    // only on key-down, only for OSM keys, and only if an OSL is live:
+    if ( record->event.pressed
+      && IS_QK_ONE_SHOT_MOD(keycode)
+      && is_oneshot_layer_active()
+    ) {
+        // nuke the layer so that the _next_ tap is on the base layer
+        clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
     }
-    // Otherwise, return false to let the default behavior handle it
-    // (i.e., cancel on normal keys, stay active on other modifiers, etc.).
-    return false;
 }
-
-// --- Optional: Callback for One Shot Modifiers ---
-// If you also wanted OSM keys to be cancelled by other OSM keys (they stack by default),
-// you could implement this:
-// bool oneshot_mods_should_cancel(uint16_t keycode, keyrecord_t *record) {
-//     if (IS_QK_ONE_SHOT_MOD(keycode)) {
-//         return true; // Cancel previous OSM if another OSM is pressed
-//     }
-//     return false;
-// }
 // ------------------------------------------------------------
 // Key Override Stuff
 // ------------------------------------------------------------
