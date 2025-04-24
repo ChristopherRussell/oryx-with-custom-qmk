@@ -1,7 +1,9 @@
 name: Fetch and build layout
 
 on:
-  # Manual trigger (unchanged)
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       layout_id:
@@ -24,24 +26,15 @@ on:
           - planck_ez/glow
         default: voyager
 
-  # NEW: run automatically on pushes to main
-  push:
-    branches: [ main ]
-
 permissions:
   contents: write
 
 jobs:
   fetch-and-build-layout:
     runs-on: ubuntu-latest
-
-    # Single source of truth for the two parameters
-    #  • If the event is workflow_dispatch → take the user-supplied input
-    #  • Otherwise (push)             → fall back to hard-coded default
     env:
-      LAYOUT_ID: ${{ github.event.inputs.layout_id      || 'Dq9r0'   }}
+      LAYOUT_ID: ${{ github.event.inputs.layout_id || 'Dq9r0' }}
       LAYOUT_GEOMETRY: ${{ github.event.inputs.layout_geometry || 'voyager' }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -54,30 +47,27 @@ jobs:
       - name: Download layout source
         id: download-layout-source
         run: |
-          response=$(curl --location 'https://oryx.zsa.io/graphql' \
-            --header 'Content-Type: application/json' \
-            --data "{\"query\":\"query getLayout(\$hashId: String!, \$revisionId: String!, \$geometry: String) {layout(hashId: \$hashId, geometry: \$geometry, revisionId: \$revisionId) {  revision { hashId, qmkVersion, title }}}\",\"variables\":{\"hashId\":\"${LAYOUT_ID}\",\"geometry\":\"${LAYOUT_GEOMETRY}\",\"revisionId\":\"latest\"}}" \
-            | jq '.data.layout.revision | [.hashId, .qmkVersion, .title]')
-
-          hash_id=$(echo "${response}"       | jq -r '.[0]')
-          firmware_version=$(printf "%.0f"   $(echo "${response}" | jq -r '.[1]'))
+          response=$(curl --location 'https://oryx.zsa.io/graphql' --header 'Content-Type: application/json' --data '{"query":"query getLayout($hashId: String!, $revisionId: String!, $geometry: String) {layout(hashId: $hashId, geometry: $geometry, revisionId: $revisionId) {  revision { hashId, qmkVersion, title }}}","variables":{"hashId":"'$LAYOUT_ID'","geometry":"'$LAYOUT_GEOMETRY'","revisionId":"latest"}}' | jq '.data.layout.revision | [.hashId, .qmkVersion, .title]')
+          hash_id=$(echo "${response}" | jq -r '.[0]')
+          firmware_version=$(printf "%.0f" $(echo "${response}" | jq -r '.[1]'))
           change_description=$(echo "${response}" | jq -r '.[2]')
-
-          [ -z "${change_description}" ] && change_description="latest layout modification made with Oryx"
-
+          if [[ -z "${change_description}" ]]; then
+            change_description="latest layout modification made with Oryx"
+          fi
+          
           curl -L "https://oryx.zsa.io/source/${hash_id}" -o source.zip
-
-          echo "firmware_version=${firmware_version}"   >> "$GITHUB_OUTPUT"
-          echo "change_description=${change_description}" >> "$GITHUB_OUTPUT"
+          
+          echo firmware_version=${firmware_version} >> "$GITHUB_OUTPUT"
+          echo change_description=${change_description} >> "$GITHUB_OUTPUT"
 
       - name: Unzip the source file
         run: |
-          unzip -oj source.zip '*_source/*' -d "${LAYOUT_ID}"
+          unzip -oj source.zip '*_source/*' -d $LAYOUT_ID
           rm source.zip
 
       - name: Commit and Push changes
         run: |
-          git config --local user.name  "github-actions"
+          git config --local user.name "github-actions"
           git config --local user.email "github-actions@github.com"
           git add .
           git commit -m "✨(oryx): ${{ steps.download-layout-source.outputs.change_description }}" || echo "No layout change"
@@ -107,7 +97,7 @@ jobs:
       - name: Build the layout
         id: build-layout
         run: |
-          # Pick correct directory prefix for newer firmware
+          # Set keyboard directory and make prefix based on firmware version
           if [ "${{ steps.download-layout-source.outputs.firmware_version }}" -ge 24 ]; then
             keyboard_directory="qmk_firmware/keyboards/zsa"
             make_prefix="zsa/"
@@ -115,22 +105,21 @@ jobs:
             keyboard_directory="qmk_firmware/keyboards"
             make_prefix=""
           fi
-
-          # Copy layout files to qmk
-          rm -rf "${keyboard_directory}/${LAYOUT_GEOMETRY}/keymaps/${LAYOUT_ID}"
-          mkdir -p "${keyboard_directory}/${LAYOUT_GEOMETRY}/keymaps"
-          cp -r "${LAYOUT_ID}" "${keyboard_directory}/${LAYOUT_GEOMETRY}/keymaps/"
-
-          # Build
+          
+          # Copy layout files to the qmk folder
+          rm -rf ${keyboard_directory}/$LAYOUT_GEOMETRY/keymaps/$LAYOUT_ID
+          mkdir -p ${keyboard_directory}/$LAYOUT_GEOMETRY/keymaps && cp -r $LAYOUT_ID "$_"
+          
+          # Build the layout
           docker run -v ./qmk_firmware:/root --rm qmk /bin/sh -c "
             qmk setup zsa/qmk_firmware -b firmware${{ steps.download-layout-source.outputs.firmware_version }} -y
-            make ${make_prefix}${LAYOUT_GEOMETRY}:${LAYOUT_ID}
+            make ${make_prefix}$LAYOUT_GEOMETRY:$LAYOUT_ID
           "
-
-          # Locate and expose built layout
-          normalized_layout_geometry="$(echo "${LAYOUT_GEOMETRY}" | sed 's/\//_/g')"
-          echo "built_layout_file=$(find ./qmk_firmware -maxdepth 1 -type f -regex \".*${normalized_layout_geometry}.*\\.\(bin\\|hex\)$\")" >> "$GITHUB_OUTPUT"
-          echo "normalized_layout_geometry=${normalized_layout_geometry}" >> "$GITHUB_OUTPUT"
+          
+          # Find and export built layout          
+          normalized_layout_geometry="$(echo "$LAYOUT_GEOMETRY" | sed 's/\//_/g')"
+          echo built_layout_file=$(find ./qmk_firmware -maxdepth 1 -type f -regex ".*${normalized_layout_geometry}.*\.\(bin\|hex\)$") >> "$GITHUB_OUTPUT"
+          echo normalized_layout_geometry=${normalized_layout_geometry} >> "$GITHUB_OUTPUT"
 
       - name: Upload layout
         uses: actions/upload-artifact@v4
