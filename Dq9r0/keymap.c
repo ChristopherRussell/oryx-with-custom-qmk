@@ -5,14 +5,6 @@
 #define MOON_LED_LEVEL LED_LEVEL
 #define ML_SAFE_RANGE SAFE_RANGE
 
-enum layers {
-  _ALPHA = 0,
-  _SYMBOL,
-  _FUNCTION,
-  _MOUSE
-  _EXTEND,
-};
-
 ////////////////////////////////////////////////////////////
 // flow stuff
 ////////////////////////////////////////////////////////////
@@ -20,21 +12,21 @@ enum layers {
 // map each OSL key to the layer it should arm for one shot
 const uint16_t flow_layers_config[FLOW_LAYERS_COUNT][2] = {
     // { layer-trigger, layer-index }
-    { OSL(_EXTEND), _EXTEND },
-    { OSL(_SYMBOL), _SYMBOL },
+    { OSL(4), 4 },
+    { OSL(1), 1 },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // map each one-shot-mod key to its OSL "parent"
 const uint16_t flow_config[FLOW_COUNT][2] = {
     // { layer-trigger, mod-trigger }
-    { OSL(_EXTEND), OSM(MOD_MEH)  },   // _EXTENDLayer → MEH
-    { OSL(_EXTEND), OSM(MOD_HYPR) },   // _EXTENDLayer → HYPR
-    { OSL(_EXTEND), OSM(MOD_LALT) },   // _EXTENDLayer → LALT
-    { OSL(_EXTEND), OSM(MOD_LGUI) },   // _EXTENDLayer → LGUI
-    { OSL(_EXTEND), OSM(MOD_LSFT) },   // _EXTENDLayer → LSFT
-    { OSL(_EXTEND), OSM(MOD_LCTL) },   // _EXTENDLayer → LCTL
-    { OSL(_ALPHA), OSM(MOD_LSFT) },   // base → one-shot-shift
+    { OSL(4), OSM(MOD_MEH)  },   // 4Layer → MEH
+    { OSL(4), OSM(MOD_HYPR) },   // 4Layer → HYPR
+    { OSL(4), OSM(MOD_LALT) },   // 4Layer → LALT
+    { OSL(4), OSM(MOD_LGUI) },   // 4Layer → LGUI
+    { OSL(4), OSM(MOD_LSFT) },   // 4Layer → LSFT
+    { OSL(4), OSM(MOD_LCTL) },   // 4Layer → LCTL
+    { OSL(0), OSM(MOD_LSFT) },   // base → one-shot-shift
 };
 ////////////////////////////////////////////////////////////
 
@@ -54,13 +46,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_EXLM,        KC_Q,           KC_W,           KC_F,           KC_P,           KC_B,                                           KC_J,           KC_L,           KC_U,           KC_Y,           KC_UNDS,        KC_MINUS,       
     KC_DELETE,      KC_A,           KC_R,           KC_S,           KC_T,           KC_G,                                           KC_M,           KC_N,           KC_E,           KC_I,           KC_O,           KC_BSPC,        
     KC_QUES,        KC_Z,           KC_X,           KC_C,           KC_D,           KC_V,                                           KC_K,           KC_H,           KC_COMMA,       KC_DOT,         KC_DQUO,        KC_QUOTE,       
-                                                    OSL(_EXTEND),         KC_LEFT_SHIFT,                                  KC_SPACE,       OSL(_SYMBOL)
+                                                    OSL(4),         KC_LEFT_SHIFT,                                  KC_SPACE,       OSL(1)
   ),
   [1] = LAYOUT_voyager(
     KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,          KC_F6,                                          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         KC_F12,         
-    TO(_FUNCTION),          KC_TRANSPARENT, KC_TRANSPARENT, OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(_ALPHA),          KC_END,         KC_PGDN,        KC_PAGE_UP,     KC_HOME,        KC_TRANSPARENT, 
+    TO(2),          KC_TRANSPARENT, KC_TRANSPARENT, OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(0),          KC_END,         KC_PGDN,        KC_PAGE_UP,     KC_HOME,        KC_TRANSPARENT, 
     KC_TRANSPARENT, OSM(MOD_LALT),  OSM(MOD_LGUI),  OSM(MOD_LSFT),  OSM(MOD_LCTL),  KC_ESCAPE,                                      KC_TAB,         KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       KC_TRANSPARENT, 
-    TO(_MOUSE),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_TRANSPARENT, KC_PC_PASTE,                                    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
+    TO(3),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_TRANSPARENT, KC_PC_PASTE,                                    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
                                                     KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_ENTER,       KC_TRANSPARENT
   ),
   [2] = LAYOUT_voyager(
@@ -72,16 +64,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [3] = LAYOUT_voyager(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_BRIGHTNESS_UP,KC_BRIGHTNESS_DOWN,RGB_VAI,        RGB_VAD,        RGB_MODE_FORWARD,
-    TO(_EXTEND),          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          TO(_ALPHA),          KC_AUDIO_VOL_UP,KC_AUDIO_VOL_DOWN,KC_AUDIO_MUTE,  KC_NO,          KC_NO,          
+    TO(4),          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          TO(0),          KC_AUDIO_VOL_UP,KC_AUDIO_VOL_DOWN,KC_AUDIO_MUTE,  KC_NO,          KC_NO,          
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_MEDIA_PREV_TRACK,KC_MEDIA_PLAY_PAUSE,KC_MEDIA_NEXT_TRACK,KC_MEDIA_STOP,  KC_NO,          
-    TO(_MOUSE),          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
+    TO(3),          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
                                                     KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT
   ),
   [4] = LAYOUT_voyager(
     KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,                                          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
-    TO(_FUNCTION),          KC_NO,          KC_NO,          OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(_ALPHA),          KC_MS_WH_LEFT,  KC_MS_WH_DOWN,  KC_MS_WH_UP,    KC_MS_WH_RIGHT, KC_NO,          
+    TO(2),          KC_NO,          KC_NO,          OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(0),          KC_MS_WH_LEFT,  KC_MS_WH_DOWN,  KC_MS_WH_UP,    KC_MS_WH_RIGHT, KC_NO,          
     KC_TRANSPARENT, OSM(MOD_LALT),  OSM(MOD_LGUI),  OSM(MOD_LSFT),  OSM(MOD_LCTL),  KC_ESCAPE,                                      KC_MS_BTN3,     TD(DANCE_0),    KC_MS_DOWN,     KC_MS_UP,       KC_MS_RIGHT,    KC_TRANSPARENT, 
-    TO(_EXTEND),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_NO,          KC_PC_PASTE,                                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
+    TO(4),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_NO,          KC_PC_PASTE,                                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
                                                     KC_TRANSPARENT, KC_MS_BTN1,                                     KC_MS_BTN2,     KC_TRANSPARENT
   ),
 };
@@ -135,19 +127,19 @@ bool rgb_matrix_indicators_user(void) {
   }
   if (keyboard_config.disable_layer_led) { return false; }
   switch (biton32(layer_state)) {
-    case _ALPHA:
+    case 0:
       set_layer_color(0);
       break;
-    case _SYMBOL:
+    case 1:
       set_layer_color(1);
       break;
-    case _FUNCTION:
+    case 2:
       set_layer_color(2);
       break;
-    case _MOUSE:
+    case 3:
       set_layer_color(3);
       break;
-    case _EXTEND:
+    case 4:
       set_layer_color(4);
       break;
    default:
@@ -268,7 +260,7 @@ tap_dance_action_t tap_dance_actions[] = {
 // https://github.com/qmk/qmk_firmware/issues/22566
 //
 // Where KoFish proposes this solution to get the old behaviour. Note, this
-// does NOT let you chain like: OSL(_SYMBOL) -> OSL(_EXTEND) -> OSM(Shift) -> <key in layer 2>
+// does NOT let you chain like: OSL(1) -> OSL(4) -> OSM(Shift) -> <key in layer 2>
 // instead you return to the base layer after the OSM key is released.
 //
 // I am using this to cancel the one-shot layer when the OSM key is pressed,
