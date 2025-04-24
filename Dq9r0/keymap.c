@@ -20,13 +20,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_EXLM,        KC_Q,           KC_W,           KC_F,           KC_P,           KC_B,                                           KC_J,           KC_L,           KC_U,           KC_Y,           KC_UNDS,        KC_MINUS,       
     KC_DELETE,      KC_A,           KC_R,           KC_S,           KC_T,           KC_G,                                           KC_M,           KC_N,           KC_E,           KC_I,           KC_O,           KC_BSPC,        
     KC_QUES,        KC_Z,           KC_X,           KC_C,           KC_D,           KC_V,                                           KC_K,           KC_H,           KC_COMMA,       KC_DOT,         KC_DQUO,        KC_QUOTE,       
-                                                    OSL(4),         KC_LEFT_SHIFT,                                  KC_SPACE,       OSL(1)
+                                                    OSL(4),         KC_LEFT_SHIFT,                                  KC_SPACE,       TT(1)
   ),
   [1] = LAYOUT_voyager(
-    KC_NO,          KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                                           KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_NO,          
-    KC_NO,          KC_LABK,        KC_AMPR,        KC_RABK,        KC_DLR,         UK_EURO,                                        UK_PND,         KC_QUES,        KC_LBRC,        KC_GRAVE,       KC_RBRC,        KC_NO,          
+    KC_TRANSPARENT, KC_1,           KC_2,           KC_3,           KC_4,           KC_5,                                           KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_TRANSPARENT, 
+    KC_TRANSPARENT, KC_LABK,        KC_AMPR,        KC_RABK,        KC_DLR,         UK_EURO,                                        UK_PND,         KC_QUES,        KC_LBRC,        KC_GRAVE,       KC_RBRC,        KC_TRANSPARENT, 
     KC_TRANSPARENT, KC_PIPE,        KC_PLUS,        KC_MINUS,       KC_EQUAL,       KC_EXLM,                                        KC_QUOTE,       KC_COLN,        KC_LPRN,        UK_HASH,        KC_RPRN,        KC_TRANSPARENT, 
-    KC_NO,          KC_PERC,        KC_SLASH,       KC_ASTR,        KC_TILD,        KC_CIRC,                                        KC_AT,          KC_SCLN,        KC_LCBR,        KC_BSLS,        KC_RCBR,        KC_NO,          
+    KC_TRANSPARENT, KC_PERC,        KC_SLASH,       KC_ASTR,        KC_TILD,        KC_CIRC,                                        KC_AT,          KC_SCLN,        KC_LCBR,        KC_BSLS,        KC_RCBR,        KC_TRANSPARENT, 
                                                     KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT
   ),
   [2] = LAYOUT_voyager(
@@ -45,18 +45,13 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [4] = LAYOUT_voyager(
     KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,          KC_F6,                                          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         KC_F12,         
-    TO(2),          KC_TRANSPARENT, KC_TRANSPARENT, OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(0),          KC_END,         KC_PGDN,        KC_PAGE_UP,     KC_HOME,        KC_TRANSPARENT, 
+    TO(2),          KC_NO,          KC_NO,          OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(0),          KC_END,         KC_PGDN,        KC_PAGE_UP,     KC_HOME,        KC_NO,          
     KC_TRANSPARENT, OSM(MOD_LALT),  OSM(MOD_LGUI),  OSM(MOD_LSFT),  OSM(MOD_LCTL),  KC_ESCAPE,                                      KC_TAB,         KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       KC_TRANSPARENT, 
-    TO(3),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_TRANSPARENT, KC_PC_PASTE,                                    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
+    TO(3),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_NO,          KC_PC_PASTE,                                    KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          KC_NO,          
                                                     KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_ENTER,       KC_TRANSPARENT
   ),
 };
 
-const uint16_t PROGMEM combo0[] = { KC_Q, KC_W, KC_F, KC_U, KC_Y, KC_UNDS, COMBO_END};
-
-combo_t key_combos[COMBO_COUNT] = {
-    COMBO(combo0, TG(5)),
-};
 
 
 extern rgb_config_t rgb_matrix_config;
