@@ -309,6 +309,15 @@ bool update_flow(
     bool pressed,
     keypos_t key_position
 ) {
+    // Resolve transparent keycodes by looking through all active layers
+    if (keycode == KC_TRANSPARENT) {
+        uint8_t layer = layer_switch_get_layer(key_position);
+        while (keycode == KC_TRANSPARENT && layer > 0) {
+            layer--;
+            keycode = keymap_key_to_keycode(layer, key_position);
+        }
+    }
+    
     bool pass = update_flow_mods(keycode, pressed);
     pass = update_flow_layers(keycode, pressed, key_position) & pass;
     return pass;
