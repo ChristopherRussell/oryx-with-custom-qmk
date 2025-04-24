@@ -9,4 +9,3 @@ COMBO_ENABLE = yes
 
 # Non-ORYX Custom QMK Features
 KEY_OVERRIDE_ENABLE = yes
-SRC += flow.c
