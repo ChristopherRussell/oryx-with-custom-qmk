@@ -1,6 +1,32 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
 #include "i18n.h"
+
+////////////////////////////////////////////////////////////
+// flow stuff
+////////////////////////////////////////////////////////////
+#include "flow.h"
+// map each OSL key to the layer it should arm for one shot
+const uint16_t flow_layers_config[FLOW_LAYERS_COUNT][2] = {
+    // { layer-trigger, layer-index }
+    { OSL(1), 1 },
+    { OSL(2), 2 },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// map each one-shot-mod key to its OSL "parent"
+const uint16_t flow_config[FLOW_COUNT][2] = {
+    // { layer-trigger, mod-trigger }
+    { OSL(1), OSM(MOD_MEH)  },   // L1 → MEH
+    { OSL(1), OSM(MOD_HYPR) },   // L1 → HYPR
+    { OSL(1), OSM(MOD_LALT) },   // L1 → LALT
+    { OSL(1), OSM(MOD_LGUI) },   // L1 → LGUI
+    { OSL(1), OSM(MOD_LSFT) },   // L1 → LSFT
+    { OSL(1), OSM(MOD_LCTL) },   // L1 → LCTL
+    { OSL(0), OSM(MOD_LSFT) },   // base → one-shot-shift
+};
+////////////////////////////////////////////////////////////
+
 #define MOON_LED_LEVEL LED_LEVEL
 #define ML_SAFE_RANGE SAFE_RANGE
 
@@ -25,7 +51,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [1] = LAYOUT_voyager(
     KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,          KC_F6,                                          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         KC_F12,         
     TO(3),          KC_TRANSPARENT, KC_TRANSPARENT, OSM(MOD_MEH),   OSM(MOD_HYPR),  KC_DELETE,                                      TO(0),          KC_END,         KC_PGDN,        KC_PAGE_UP,     KC_HOME,        KC_TRANSPARENT, 
-    KC_TRANSPARENT, OSM(MOD_LALT),  OSM(MOD_LGUI),  OSM(MOD_LSFT),  OSM(MOD_LGUI),  KC_ESCAPE,                                      KC_TAB,         KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       KC_TRANSPARENT, 
+    KC_TRANSPARENT, OSM(MOD_LALT),  OSM(MOD_LGUI),  OSM(MOD_LSFT),  OSM(MOD_LCTL),  KC_ESCAPE,                                      KC_TAB,         KC_LEFT,        KC_DOWN,        KC_UP,          KC_RIGHT,       KC_TRANSPARENT, 
     TO(4),          KC_PC_UNDO,     KC_PC_CUT,      KC_PC_COPY,     KC_TRANSPARENT, KC_PC_PASTE,                                    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
                                                     KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_ENTER,       KC_TRANSPARENT
   ),
@@ -120,6 +146,14 @@ bool rgb_matrix_indicators_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  // ------------------------------------------------------------
+  // Flow Stuff
+  // ------------------------------------------------------------
+  if (!update_flow(keycode, record->event.pressed, record->event.key)) {
+    return false;
+  }
+  // ------------------------------------------------------------
+
   switch (keycode) {
 
     case RGB_SLD:
@@ -220,20 +254,30 @@ tap_dance_action_t tap_dance_actions[] = {
 //
 // https://github.com/qmk/qmk_firmware/issues/22566
 //
-// Where KoFish proposes this solution to get the old behaviour.
+// Where KoFish proposes this solution to get the old behaviour. Note, this
+// does NOT let you chain like: OSL(2) -> OSL(1) -> OSM(Shift) -> <key in layer 2>
+// instead you return to the base layer after the OSM key is released.
 //
 // I am using this to cancel the one-shot layer when the OSM key is pressed,
 // so that I can do OSL -> OSM -> <key in original layer>
-void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
-    // only on key-down, only for OSM keys, and only if an OSL is live:
-    if ( record->event.pressed
-      && IS_QK_ONE_SHOT_MOD(keycode)
-      && is_oneshot_layer_active()
-    ) {
-        // nuke the layer so that the _next_ tap is on the base layer
-        clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
-    }
+// void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+//     // only on key-down, only for OSM keys, and only if an OSL is live:
+//     if ( record->event.pressed
+//       && IS_QK_ONE_SHOT_MOD(keycode)
+//       && is_oneshot_layer_active()
+//     ) {
+//         // nuke the layer so that the _next_ tap is on the base layer
+//         clear_oneshot_layer_state(ONESHOT_OTHER_KEY_PRESSED);
+//     }
+// }
+// ------------------------------------------------------------
+// Flow Stuff
+// ------------------------------------------------------------
+
+void matrix_scan_user(void) {
+  flow_matrix_scan();
 }
+
 // ------------------------------------------------------------
 // Key Override Stuff
 // ------------------------------------------------------------

@@ -45,3 +45,12 @@
 #undef ENABLE_RGB_MATRIX_STARLIGHT
 #undef ENABLE_RGB_MATRIX_STARLIGHT_DUAL_HUE
 #undef ENABLE_RGB_MATRIX_STARLIGHT_DUAL_SAT
+
+
+////////////////////////////////////////////////////////////
+// flow stuff
+////////////////////////////////////////////////////////////
+// number of “layer-trigger ↔ mod-trigger” pairs you’ll define:
+#define FLOW_COUNT         7
+// number of one-shot layers you have:
+#define FLOW_LAYERS_COUNT  2
