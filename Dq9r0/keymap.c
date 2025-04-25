@@ -1,12 +1,29 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
 #include "i18n.h"
+#include "features/custom_shift_keys.h"
 #define MOON_LED_LEVEL LED_LEVEL
 #define ML_SAFE_RANGE SAFE_RANGE
 
 enum custom_keycodes {
   RGB_SLD = ML_SAFE_RANGE,
 };
+
+////////////////////////////////////////////////////////////
+// Custom shift keys definition
+////////////////////////////////////////////////////////////
+
+const custom_shift_key_t custom_shift_keys[] = {
+    {KC_COMM, KC_QUES},  // , -> ?
+    {KC_DOT,  KC_EXLM},  // . -> !
+    {KC_UNDS, KC_MINS},  // _ -> -
+    {KC_DQUO, KC_QUOT},  // " -> '
+    {KC_EURO, KC_POUND}, // € -> £
+};
+
+uint8_t NUM_CUSTOM_SHIFT_KEYS = sizeof(custom_shift_keys) / sizeof(custom_shift_key_t);
+//
+////////////////////////////////////////////////////////////
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_voyager(
@@ -126,8 +143,9 @@ bool rgb_matrix_indicators_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (!process_custom_shift_keys(keycode, record)) { return false; }
+  
   switch (keycode) {
-
     case RGB_SLD:
       if (record->event.pressed) {
         rgblight_mode(1);

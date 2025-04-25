@@ -6,3 +6,5 @@ SPACE_CADET_ENABLE = no
 
 # Non-ORYX Custom QMK Features
 KEY_OVERRIDE_ENABLE = yes
+
+SRC += features/custom_shift_keys.c
