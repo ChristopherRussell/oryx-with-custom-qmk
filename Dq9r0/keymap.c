@@ -18,7 +18,7 @@ const custom_shift_key_t custom_shift_keys[] = {
     {KC_DOT,  KC_EXLM},  // . -> !
     {KC_UNDS, KC_MINS},  // _ -> -
     {KC_DQUO, KC_QUOT},  // " -> '
-    {UK_EURO, UK_PND}, // € -> £
+    {UK_EURO, UK_POUND}, // € -> £
 };
 
 uint8_t NUM_CUSTOM_SHIFT_KEYS = sizeof(custom_shift_keys) / sizeof(custom_shift_key_t);
